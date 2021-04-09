@@ -1,0 +1,51 @@
+---
+title: "health_map"
+author: "Mario"
+date: '2021-04-09'
+output: html_document
+---
+
+###Map generated for Health Project
+```{r}
+library(tidyverse)
+library(lubridate)
+library(gsheet)
+
+data <- read_csv("historical.csv") %>% 
+  mutate(date = mdy(Date)) %>% 
+  mutate(year = year(date)) 
+health <- read.csv("tree_health.csv")
+
+df <-  data %>% 
+  select(7, 9:11, DBH, 18, 32, 30, 28, year, 20, 21) %>% 
+  rename(TreeID = Tree_Tag_N, species = 2, common = 3, genus = 4, crown_width = 6, conks = 7, scars = 8,
+  branch_health = 9) 
+
+final <-  merge(df, health, by = "TreeID" )
+```
+##DBH Maps
+```{r}
+library(ggmap)
+library(geosphere)
+
+register_google(key="AIzaSyBurG6FR6I4uc_nRUr6TY118dCsnM0tsiE")
+York <- get_map(location = c(lon = -79.502469, lat = 43.773388), zoom = 15, maptype = "satellite")
+York
+map <- ggmap(York)
+map <- map +
+  geom_point(data=final, aes(x=Longitude, y=Latitude, color = DBH), alpha = 1, size =0.1, shape = 0, show.legend = TRUE) +
+  labs(x = "longitude", y = "latitude") + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank())
+map + scale_color_gradient(low = "yellow", high = "red")
+```
+
+```{r}
+register_google(key="AIzaSyBurG6FR6I4uc_nRUr6TY118dCsnM0tsiE")
+York <- get_map(location = c(lon = -79.502469, lat = 43.773388), zoom = 15)
+York
+map <- ggmap(York)
+map <- map +
+  geom_point(data=final, aes(x=Longitude, y=Latitude, color = DBH), alpha = 1, size =0.1, shape = 0, show.legend = TRUE) +
+  labs(x = "longitude", y = "latitude") + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank())
+map + scale_color_gradient(low = "yellow", high = "red")
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
